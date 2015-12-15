@@ -2,13 +2,21 @@
     <string name="app_name">Marshmallo</string>
     <string name="create_sample_data">Create sample data</string>
     <string name="delete_all_notes">Delete all notes</string>
-    <string name="are_you_sure">Are you sure?</string>
+    <string name="are_you_sure">Are you sure? All notes will be permanently deleted.</string>
     <string name="all_deleted">All notes have been deleted</string>
-    <string name="title_activity_editor">EditorActivity</string>
+    <string name="title_activity_editor">Note Editor</string>
     <string name="new_note">New note</string>
     <string name="note_updated">Note updated</string>
     <string name="action_delete">Delete</string>
     <string name="note_deleted">Note deleted</string>
     <string name="note">Note</string>
-    <string name="enter_note_here">Enter note here</string>
+    <string name="add_memo">Add memo</string>
+    <string name="enter_title">Enter title</string>
+    <string name="are_you_sure_single">Are you sure? This note will be permanently deleted.</string>
+    <string name="note_saved">Note saved</string>
+    <string name="please_enter_a_title">Please enter a title</string>
+    <string name="confirm">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="error">Error</string>
+    <string name="save_failed">Save failed! Please enter a title</string>
 </resources>

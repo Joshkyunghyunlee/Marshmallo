@@ -1,7 +1,10 @@
 package com.joshkyunghyunlee.marshmallo;
 
+import android.app.AlertDialog;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,9 +18,12 @@ import android.widget.Toast;
 public class EditorActivity extends AppCompatActivity {
 
     private String action;
-    private EditText editor;
+    private EditText editorText;
+    private EditText editorTitle;
     private String noteFilter;
     private String oldText;
+    private String oldTitle;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,7 +31,8 @@ public class EditorActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        editor = (EditText) findViewById(R.id.editText);
+        editorText = (EditText) findViewById(R.id.editText);
+        editorTitle = (EditText) findViewById(R.id.editTitle);
 
         Intent intent = getIntent();
 
@@ -43,11 +50,20 @@ public class EditorActivity extends AppCompatActivity {
                     DBOpenHelper.ALL_COLUMNS, noteFilter, null, null);
             cursor.moveToFirst();
             oldText = cursor.getString(cursor.getColumnIndex(DBOpenHelper.NOTE_TEXT));
-            editor.setText(oldText);
-            editor.requestFocus();
+            oldTitle = cursor.getString(cursor.getColumnIndex(DBOpenHelper.NOTE_TITLE));
+            editorText.setText(oldText);
+            editorTitle.setText(oldTitle);
+            editorText.requestFocus();
+            editorTitle.requestFocus();
         }
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+
+    //method allows user to switch from landscape view to portrait.
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
     }
 
     @Override
@@ -74,52 +90,77 @@ public class EditorActivity extends AppCompatActivity {
      }
 
     private void deleteNote() {
-        getContentResolver().delete(NotesProvider.CONTENT_URI,
-                noteFilter, null);
-        Toast.makeText(this, R.string.note_deleted, Toast.LENGTH_SHORT).show();
-        setResult(RESULT_OK);
-        finish();
+        //Listener
+        DialogInterface.OnClickListener dialogClickListener =
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        if (id == DialogInterface.BUTTON_POSITIVE) {
+                            getContentResolver().delete(NotesProvider.CONTENT_URI,
+                                    noteFilter, null);
+                            //Tell user what happened
+                            Toast.makeText(EditorActivity.this, getString(R.string.note_deleted),
+                                    Toast.LENGTH_SHORT).show();
+                            setResult(RESULT_OK);
+                            //go back to main activity & update displayed data
+                            finish();
+                        }
+                    }
+                };
+        //Message prompt
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(getString(R.string.are_you_sure_single))
+                .setPositiveButton(getString(android.R.string.yes), dialogClickListener)
+                .setNegativeButton(getString(android.R.string.no), dialogClickListener)
+                .show();
 }
 
     private void finishEditing() {
-        String newText = editor.getText().toString().trim();
+        String newText = editorText.getText().toString().trim();
+        String newTitle = editorTitle.getText().toString().trim();
 
         switch (action) {
             case Intent.ACTION_INSERT:
-                if(newText.length() == 0) {
+                if(newText.length() == 0 && newTitle.length() == 0) {
+                    setResult(RESULT_CANCELED);
+                }
+                else if(newText.length() !=0 && newTitle.length() == 0){
+                    Toast.makeText(EditorActivity.this, R.string.save_failed, Toast.LENGTH_LONG).show();
                     setResult(RESULT_CANCELED);
                 }
                 else {
-                    insertNote(newText);
+                    Toast.makeText(EditorActivity.this, getString(R.string.note_saved),
+                            Toast.LENGTH_SHORT).show();
+                    insertNote(newText, newTitle);
                 }
                 break;
             case Intent.ACTION_EDIT:
-                if (newText.length() == 0){
-                    deleteNote();
-                }
-                //if no change is made to text during edit, do nothing
-                else if (oldText.equals(newText)){
+                //if title is deleted or no change is made, return to original state
+                if (newTitle.length() == 0 || (oldText.equals(newText) && oldTitle.equals(newTitle))){
                     setResult(RESULT_CANCELED);
                 }
                 else {
-                    updateNote(newText);
+                    updateNote(newText, newTitle);
                 }
+                break;
         }
         finish();
     }
 
     //Updating the database
-    private void updateNote(String noteText) {
+    private void updateNote(String noteText, String noteTitle) {
         ContentValues values = new ContentValues();
         values.put(DBOpenHelper.NOTE_TEXT, noteText);
+        values.put(DBOpenHelper.NOTE_TITLE, noteTitle);
         getContentResolver().update(NotesProvider.CONTENT_URI, values, noteFilter, null);
         Toast.makeText(this, getString(R.string.note_updated), Toast.LENGTH_SHORT).show();
         setResult(RESULT_OK);
     }
 
-    private void insertNote(String noteText) {
+    private void insertNote(String noteText, String noteTitle) {
         ContentValues values = new ContentValues();
         values.put(DBOpenHelper.NOTE_TEXT, noteText);
+        values.put(DBOpenHelper.NOTE_TITLE, noteTitle);
 
         //insert a row into database table
         getContentResolver().insert(NotesProvider.CONTENT_URI, values);

@@ -7,6 +7,7 @@ import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -53,13 +54,21 @@ public class MainActivity extends AppCompatActivity
         getLoaderManager().initLoader(0, null, this);
     }
 
-    private void insertNote(String noteText) {
+    private void insertNote(String noteTitle, String noteText) {
         ContentValues values = new ContentValues();
+        //put values into database
+        values.put(DBOpenHelper.NOTE_TITLE, noteTitle);
         values.put(DBOpenHelper.NOTE_TEXT, noteText);
 
         //insert a row into database table
         Uri noteUri = getContentResolver().insert(NotesProvider.CONTENT_URI,
                 values);
+    }
+
+    //method allows user to switch from landscape view to portrait.
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
     }
 
     @Override
@@ -112,15 +121,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void insertSampleData() {
-        insertNote("Simple note");
-        insertNote("Multi-line\nnote");
-        insertNote("Very long note with a lot of text which exceeds the width of the screen");
-
+        insertNote("Note sample title", "Note sample text");
         //gets new inserted data from database
         restartLoader();
     }
 
-    private void restartLoader() {
+    public void restartLoader() {
         getLoaderManager().restartLoader(0, null, this);
     }
 

@@ -24,14 +24,14 @@ public class NotesCursorAdapter extends CursorAdapter{
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
 
-        String noteText = cursor.getString(
-                cursor.getColumnIndex(DBOpenHelper.NOTE_TEXT));
-        int pos = noteText.indexOf(10); //10 is the ASCII value of a linefeed character
+        String noteTitle = cursor.getString(
+                cursor.getColumnIndex(DBOpenHelper.NOTE_TITLE));
+        int pos = noteTitle.indexOf(10); //10 is the ASCII value of a linefeed character
         if(pos != -1){
-            noteText = noteText.substring(0, pos) + "...";
+            noteTitle = noteTitle.substring(0, pos) + "...";
         }
 
         TextView tv = (TextView) view.findViewById(R.id.tvNote);
-        tv.setText(noteText);
+        tv.setText(noteTitle);
     }
 }
